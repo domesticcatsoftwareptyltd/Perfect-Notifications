@@ -59,6 +59,9 @@ public enum APNSNotificationItem {
 	case customPayload(String, Any)
     /// apn mutable-content key
     case mutableContent
+  
+  
+  case rawPayload([String:Any])
 }
 
 /// Valid APNS priorities
@@ -400,7 +403,9 @@ public class NotificationPusher {
 				dict[s] = a
             case .mutableContent:
                 aps["mutable-content"] = 1
-            }
+      case .rawPayload:
+        break
+      }
 		}
 		
 		if let ab = alertBody {
@@ -414,6 +419,13 @@ public class NotificationPusher {
 		
 		dict["aps"] = aps
 		do {
+      guard let firstItem = items.first else {
+        return "{}"
+      }
+      
+      if case let .rawPayload(payload) = firstItem {
+        return try payload.jsonEncodedString()
+      }
 			return try dict.jsonEncodedString()
 		}
 		catch {}
